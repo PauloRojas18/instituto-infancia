@@ -127,7 +127,7 @@ export default function DashboardPage() {
                         style={{ padding:'10px 14px', borderBottom:'1px solid rgba(240,98,146,0.08)', display:'flex', alignItems:'center', gap:10, cursor:'pointer', minHeight: isMobile ? 52 : 44 }}
                         onMouseOver={e=>(e.currentTarget.style.background='rgba(255,235,243,0.6)')}
                         onMouseOut={e=>(e.currentTarget.style.background='')}>
-                        <Avatar nome={c.nome} fotoUrl={c.foto_url} color={t.color} light={t.light} size={36} radius={10} />
+                        <Avatar nome={c.nome} color={t.color} light={t.light} size={36} radius={10} />
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontSize:12, fontWeight:800, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.nome}</div>
                           <div style={{ fontSize:10, color:'var(--sub)', fontWeight:700 }}>{TURMA_EMOJI[c.turma]} {t.label}</div>

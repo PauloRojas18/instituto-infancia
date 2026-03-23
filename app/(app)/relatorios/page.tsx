@@ -201,7 +201,7 @@ export default function RelatoriosPage() {
                       <div style={{ width:30, height:30, borderRadius:9, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', fontWeight:900, background:t.light, color:t.color, fontSize:11 }}>
                         {c.foto_url
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={c.foto_url} alt={c.nome} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
+                          ? <img alt={c.nome} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
                           : c.nome.split(' ').map(n=>n[0]).slice(0,2).join('')}
                       </div>
                       <span style={{ fontSize:12, fontWeight:800, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.nome}</span>
