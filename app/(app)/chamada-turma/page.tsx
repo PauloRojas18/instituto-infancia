@@ -26,7 +26,7 @@ export default function ChamadaTurmaPage() {
   const [presencas,  setPresencas]  = useState<Record<number, boolean>>({})
   const [salvando,   setSalvando]   = useState(false)
   const [salvou,     setSalvou]     = useState(false)
-  const [feitasHoje, setFeitasHoje] = useState<Set<string>>(new Set())
+  const [feitasHoje, setFeitasHoje] = useState<Record<string, boolean>>({}) // Alterado para objeto
 
   useEffect(() => {
     let cancelled = false
@@ -36,8 +36,10 @@ export default function ChamadaTurmaPage() {
     ]).then(([c, ch]: [Crianca[], ChamadaAPI[]]) => {
       if (cancelled) return
       setCriancas(Array.isArray(c) ? c : [])
-      const feitas = new Set<string>()
-      if (Array.isArray(ch)) ch.forEach(x => { if (x.data === hoje) feitas.add(x.turma) })
+      const feitas: Record<string, boolean> = {} // Objeto em vez de Set
+      if (Array.isArray(ch)) {
+        ch.forEach(x => { if (x.data === hoje) feitas[x.turma] = true })
+      }
       setFeitasHoje(feitas)
       setLoading(false)
     })
@@ -81,7 +83,8 @@ export default function ChamadaTurmaPage() {
     })
     setSalvando(false)
     setSalvou(true)
-    setFeitasHoje(prev => new Set([...prev, turmaAtiva]))
+    // Marca a turma como feita usando objeto
+    setFeitasHoje(prev => ({ ...prev, [turmaAtiva]: true }))
     setTimeout(() => { setView('lista'); setTurmaAtiva(null) }, 1500)
   }
 
@@ -219,7 +222,7 @@ export default function ChamadaTurmaPage() {
           {TURMAS_ORDER.map(tid => {
             const t       = TURMA_CONFIG[tid]
             const membros = criancas.filter(c => c.turma === tid)
-            const feita   = feitasHoje.has(tid)
+            const feita   = feitasHoje[tid] // Agora verifica diretamente no objeto
 
             return (
               <Card key={tid} style={{ overflow:'hidden', border:`1.5px solid ${t.color}33`, boxShadow:`0 4px 18px ${t.color}18` }}>
