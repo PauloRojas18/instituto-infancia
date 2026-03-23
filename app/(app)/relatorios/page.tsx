@@ -199,10 +199,10 @@ export default function RelatoriosPage() {
                       onMouseOut={e=>(e.currentTarget.style.background='')}>
                       <span style={{ fontSize:11, fontWeight:900, color:i<3?'var(--pink)':'#CBD5E1', minWidth:24, flexShrink:0 }}>#{i+1}</span>
                       <div style={{ width:30, height:30, borderRadius:9, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', fontWeight:900, background:t.light, color:t.color, fontSize:11 }}>
-                        {c.foto_url
+                        {
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img alt={c.nome} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
-                          : c.nome.split(' ').map(n=>n[0]).slice(0,2).join('')}
+                           <img alt={c.nome} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
+                          }
                       </div>
                       <span style={{ fontSize:12, fontWeight:800, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.nome}</span>
                       <span style={{ fontSize:13, fontWeight:900, color:freqColor(c.pct), flexShrink:0 }}>{c.pct}%</span>
