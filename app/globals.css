@@ -92,21 +92,13 @@ body::before {
   .sidebar-desktop { display: none !important; }
   .topbar-mobile   { display: flex !important; }
 
-  /* Nuvens menores mas igualmente distribuídas em 3×2 no mobile */
+  /* Nuvens reposicionadas para ficarem mais no centro da página */
   body::before {
     background-size:
       120px 60px, 105px 53px, 115px 58px,
       110px 55px,  95px 48px, 118px 59px;
     background-position:
-      -8%  3%,   38%  1%,   78%  4%,
-      -6%  83%,  36%  86%,  75%  84%;
-  }
-  body::after {
-    background-size:
-      88px 44px, 72px 36px,
-      82px 41px, 68px 34px;
-    background-position:
-      18%  38%,  60%  35%,
-      2%   42%,  82%  43%;
+      5%   30%,   38%  18%,   78%  35%,
+      12%  68%,   48%  82%,   85%  70%;
   }
 }
