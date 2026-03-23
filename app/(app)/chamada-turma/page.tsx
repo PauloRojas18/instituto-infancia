@@ -251,7 +251,7 @@ export default function ChamadaTurmaPage() {
                   <button type="button" onClick={()=>iniciar(tid)} style={{
                     width:'100%',
                     padding: isMobile ? '14px' : '10px',
-                    borderRadius:12, border:'none',
+                    borderRadius:12,
                     cursor:'pointer',
                     background: feita ? 'rgba(255,255,255,0.6)' : t.color,
                     color: feita ? t.text : 'white',
