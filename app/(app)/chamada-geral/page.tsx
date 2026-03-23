@@ -174,7 +174,7 @@ export default function ChamadaGeralPage() {
                       }}
                     >
                       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <Avatar nome={c.nome} fotoUrl={c.foto_url} color={t.color} light={t.light} size={40} radius={12} />
+                        <Avatar nome={c.nome} color={t.color} light={t.light} size={40} radius={12} />
                         <div>
                           <div style={{ fontSize:13, fontWeight:800, color: v ? t.text : 'var(--text)' }}>{c.nome}</div>
                           <div style={{ fontSize:10, color: v ? t.text : 'var(--sub)', fontWeight:700, marginTop:1 }}>

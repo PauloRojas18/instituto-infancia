@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Crianca, TURMA_CONFIG, TURMAS_ORDER, FreqResumo } from '@/types'
-import { PageHeader, Card, CardHeader, StatCard, ProgressBar, Loading, Empty } from '@/components/ui'
+import { PageHeader, Card, CardHeader, StatCard, ProgressBar, Avatar, Loading, Empty } from '@/components/ui'
 import {
   UserGroupIcon, ChartBarIcon, ExclamationTriangleIcon,
   ArrowDownTrayIcon, CloudArrowUpIcon, CheckCircleIcon, ArrowPathIcon,
@@ -198,12 +198,7 @@ export default function RelatoriosPage() {
                       onMouseOver={e=>(e.currentTarget.style.background='#FFF8F9')}
                       onMouseOut={e=>(e.currentTarget.style.background='')}>
                       <span style={{ fontSize:11, fontWeight:900, color:i<3?'var(--pink)':'#CBD5E1', minWidth:24, flexShrink:0 }}>#{i+1}</span>
-                      <div style={{ width:30, height:30, borderRadius:9, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', fontWeight:900, background:t.light, color:t.color, fontSize:11 }}>
-                        {
-                          // eslint-disable-next-line @next/next/no-img-element
-                           <img alt={c.nome} style={{ width:'100%',height:'100%',objectFit:'cover' }} />
-                          }
-                      </div>
+                      <Avatar nome={c.nome} color={t.color} light={t.light} size={40} radius={12} />
                       <span style={{ fontSize:12, fontWeight:800, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.nome}</span>
                       <span style={{ fontSize:13, fontWeight:900, color:freqColor(c.pct), flexShrink:0 }}>{c.pct}%</span>
                     </div>
