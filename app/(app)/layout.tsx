@@ -101,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:20, color:'#fff', lineHeight:1.1 }}>Infância</div>
-            <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.65)', marginTop:1 }}>Ministério Infantil · 2026</div>
+            <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.65)', marginTop:1 }}>Instituto da Infancia · 2026</div>
           </div>
         </div>
 
@@ -121,7 +121,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className="sidebar-desktop" style={{ width:228, flexShrink:0, background:SIDEBAR_BG, boxShadow:'3px 0 22px rgba(240,98,146,0.22)' }}>
         <SidebarInner />
       </aside>
-
       {open && <>
         <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(74,44,58,0.45)', zIndex:40 }} />
         <aside style={{ position:'fixed', left:0, top:0, bottom:0, width:240, zIndex:50, background:SIDEBAR_BG, boxShadow:'4px 0 24px rgba(240,98,146,0.30)' }}>

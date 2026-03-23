@@ -26,7 +26,7 @@ export default function DashboardPage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  if (loading) return <><PageHeader title="Dashboard" sub="Visão geral do ministério" /><Loading /></>
+  if (loading) return <><PageHeader title="Dashboard" sub="Visão geral" /><Loading /></>
 
   const freqMap    = Object.fromEntries(resumo.map(r => [r.crianca_id, r]))
   const alertas    = criancas.filter(c => { const f=freqMap[c.id]; return f && f.pct < 75 })
@@ -45,7 +45,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
-      <PageHeader title="Dashboard" sub="Visão geral do ministério"
+      <PageHeader title="Dashboard" sub="Visão geral"
         actions={<Btn variant="secondary" size="sm" onClick={()=>router.push('/chamada-turma')}>✏️ Fazer chamada</Btn>}
       />
       <div style={{ flex:1, overflowY:'auto', padding:'20px 24px' }} className="animate-up">
