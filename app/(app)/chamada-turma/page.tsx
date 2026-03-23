@@ -129,7 +129,7 @@ export default function ChamadaTurmaPage() {
                     minHeight: isMobile ? 64 : 56,
                   }}>
                     <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                      <Avatar nome={c.nome} fotoUrl={c.foto_url} color={t.color} light={t.light} size={44} radius={13} />
+                      <Avatar nome={c.nome} color={t.color} light={t.light} size={44} radius={13} />
                       <div>
                         <div style={{ fontSize:13, fontWeight:800, color: presente ? t.text : 'var(--text)' }}>{c.nome}</div>
                         <div style={{ fontSize:11, color: presente ? t.text : 'var(--sub)', fontWeight:700, marginTop:2 }}>

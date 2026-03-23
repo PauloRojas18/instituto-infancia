@@ -78,8 +78,12 @@ export default function ChamadaGeralPage() {
     if (res.ok) {
       setSalvou(true)
       setHojeFeita(true)
-      // Recarrega do banco para refletir o estado real salvo
-      await load()
+      
+      // Limpa todas as seleções
+      const selecoesLimpar: Record<number, boolean> = {}
+      criancas.forEach(c => { selecoesLimpar[c.id] = false })
+      setPresencas(selecoesLimpar)
+      
       setTimeout(() => setSalvou(false), 2000)
     }
   }
