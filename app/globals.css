@@ -34,15 +34,14 @@ html, body {
   font-family: 'Nunito', sans-serif;
   color: var(--text);
   height: 100%;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* ── Fundo principal ── */
-body {
-  background-color: #FFF0F5;
-}
+body { background-color: #FFF0F5; }
 
-/* ── Nuvens SVG reais como pseudo-elementos no body ── */
+/* ── Nuvens ── */
 body::before,
 body::after {
   content: '';
@@ -53,7 +52,7 @@ body::after {
   background-repeat: no-repeat;
 }
 
-/* Camada 1 — nuvens grandes */
+/* 6 nuvens grandes distribuídas pela tela toda (3 colunas × 2 linhas) */
 body::before {
   background-image:
     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100'><path d='M 30 90 Q 10 90 10 72 Q 10 52 32 50 Q 32 28 55 25 Q 58 10 78 10 Q 100 10 104 28 Q 122 20 138 30 Q 158 28 165 48 Q 180 50 180 68 Q 180 90 158 90 Z' fill='%23FFCCE0' stroke='%23F48FB1' stroke-width='2.5' stroke-linejoin='round'/><path d='M 110 38 Q 120 32 128 38' fill='none' stroke='%23F48FB1' stroke-width='2' stroke-linecap='round'/></svg>"),
@@ -67,27 +66,47 @@ body::before {
     25%   14%,
     86%  25%,
     29%  92%,
-    58%  66%,
-    52%  30%,
+    47%  66%,
+    58%  30%,
     92%  80%;
   opacity: 1;
 }
 
-/* Garante que o conteúdo fique acima das nuvens */
-#__next, .app, [class*="layout"] {
-  position: relative;
-  z-index: 1;
-}
+#__next { position: relative; z-index: 1; height: 100%; }
 
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--pink-m); border-radius: 4px; }
 
+* { -webkit-tap-highlight-color: transparent; }
+
 @keyframes fadeUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
 @keyframes popIn  { from { opacity:0; transform:scale(0.93) } to { opacity:1; transform:scale(1) } }
 @keyframes spin   { to { transform: rotate(360deg) } }
-@keyframes float  { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
 
-.animate-up   { animation: fadeUp 0.22s ease both; }
-.animate-pop  { animation: popIn  0.20s ease both; }
-.animate-float{ animation: float  3s ease-in-out infinite; }
+.animate-up  { animation: fadeUp 0.22s ease both; }
+.animate-pop { animation: popIn  0.20s ease both; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .sidebar-desktop { display: none !important; }
+  .topbar-mobile   { display: flex !important; }
+
+  /* Nuvens menores mas igualmente distribuídas em 3×2 no mobile */
+  body::before {
+    background-size:
+      120px 60px, 105px 53px, 115px 58px,
+      110px 55px,  95px 48px, 118px 59px;
+    background-position:
+      -8%  3%,   38%  1%,   78%  4%,
+      -6%  83%,  36%  86%,  75%  84%;
+  }
+  body::after {
+    background-size:
+      88px 44px, 72px 36px,
+      82px 41px, 68px 34px;
+    background-position:
+      18%  38%,  60%  35%,
+      2%   42%,  82%  43%;
+  }
+}

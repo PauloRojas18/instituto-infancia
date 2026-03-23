@@ -6,11 +6,14 @@ import { Crianca, TURMA_CONFIG, TURMAS_ORDER, FreqResumo } from '@/types'
 import { PageHeader, Card, CardHeader, StatCard, Avatar, Badge, ProgressBar, Btn, Loading, Empty } from '@/components/ui'
 import { UserGroupIcon, BookOpenIcon, ClipboardDocumentListIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { freqColor } from '@/lib/utils'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const TURMA_EMOJI: Record<string, string> = { maternal:'🍼', jardim:'🌻', nivel2a:'⭐', nivel2b:'🚀' }
 
 export default function DashboardPage() {
-  const router = useRouter()
+  const router   = useRouter()
+  const isMobile = useIsMobile()
+
   const [criancas, setCriancas] = useState<Crianca[]>([])
   const [resumo,   setResumo]   = useState<FreqResumo[]>([])
   const [loading,  setLoading]  = useState(true)
@@ -28,8 +31,8 @@ export default function DashboardPage() {
 
   if (loading) return <><PageHeader title="Dashboard" sub="Visão geral" /><Loading /></>
 
-  const freqMap    = Object.fromEntries(resumo.map(r => [r.crianca_id, r]))
-  const alertas    = criancas.filter(c => { const f=freqMap[c.id]; return f && f.pct < 75 })
+  const freqMap = Object.fromEntries(resumo.map(r => [r.crianca_id, r]))
+  const alertas = criancas.filter(c => { const f=freqMap[c.id]; return f && f.pct < 75 })
 
   const freqTurma = (turmaId: string) => {
     const ids  = criancas.filter(c => c.turma===turmaId).map(c => c.id)
@@ -43,22 +46,41 @@ export default function DashboardPage() {
   resumo.forEach(r => { totalPres+=r.presentes; totalCham+=r.total })
   const freqGlobal = totalCham>0 ? Math.round(totalPres/totalCham*100) : 0
 
+  const pad = isMobile ? '12px 14px' : '20px 24px'
+  const btnLabel = isMobile ? '✏️ Chamada' : '✏️ Fazer chamada'
+
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
-      <PageHeader title="Dashboard" sub="Visão geral"
-        actions={<Btn variant="secondary" size="sm" onClick={()=>router.push('/chamada-turma')}>✏️ Fazer chamada</Btn>}
+      <PageHeader
+        title="Dashboard"
+        sub="Visão geral"
+        actions={
+          <Btn variant="secondary" size="sm" onClick={()=>router.push('/chamada-turma')}>
+            {btnLabel}
+          </Btn>
+        }
       />
-      <div style={{ flex:1, overflowY:'auto', padding:'20px 24px' }} className="animate-up">
+      <div style={{ flex:1, overflowY:'auto', padding:pad } as React.CSSProperties} className="animate-up">
 
-        {/* Stats */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:20 }}>
-          <StatCard icon={<UserGroupIcon style={{ width:22,height:22 }} />}          value={criancas.length}   label="Crianças"    color="var(--pink)"   />
-          <StatCard icon={<BookOpenIcon  style={{ width:22,height:22 }} />}          value={TURMAS_ORDER.length} label="Turmas"    color="var(--blue)"   />
-          <StatCard icon={<ClipboardDocumentListIcon style={{ width:22,height:22 }} />} value={`${freqGlobal}%`} label="Frequência" color="var(--green)"  />
-          <StatCard icon={<ExclamationTriangleIcon style={{ width:22,height:22 }} />} value={alertas.length}   label="Alertas"     color={alertas.length>0?'var(--orange)':'var(--green)'} />
+        {/* Stats: 2×2 mobile / 4 colunas desktop */}
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)',
+          gap: isMobile ? 10 : 14,
+          marginBottom: isMobile ? 12 : 18,
+        }}>
+          <StatCard icon={<UserGroupIcon style={{ width:20,height:20 }} />}             value={criancas.length}        label="Crianças"   color="var(--pink)"   />
+          <StatCard icon={<BookOpenIcon style={{ width:20,height:20 }} />}              value={TURMAS_ORDER.length}    label="Turmas"     color="var(--blue)"   />
+          <StatCard icon={<ClipboardDocumentListIcon style={{ width:20,height:20 }} />} value={`${freqGlobal}%`}       label="Frequência" color="var(--green)"  />
+          <StatCard icon={<ExclamationTriangleIcon style={{ width:20,height:20 }} />}   value={alertas.length}         label="Alertas"    color={alertas.length>0?'var(--orange)':'var(--green)'} />
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+        {/* Cards: coluna única no mobile / lado a lado no desktop */}
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: isMobile ? 12 : 16,
+        }}>
 
           {/* Turmas */}
           <Card style={{ overflow:'hidden' }}>
@@ -70,9 +92,8 @@ export default function DashboardPage() {
               const cnt = criancas.filter(c=>c.turma===tid).length
               const pct = freqTurma(tid)
               return (
-                <div key={tid} style={{ padding:'12px 16px', borderBottom:'1px solid rgba(240,98,146,0.08)', display:'flex', alignItems:'center', gap:12 }}>
-                  {/* ícone turma fofo */}
-                  <div style={{ width:36, height:36, borderRadius:12, background:t.light, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:18, boxShadow:`0 2px 8px ${t.color}22` }}>
+                <div key={tid} style={{ padding:'11px 14px', borderBottom:'1px solid rgba(240,98,146,0.08)', display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ width:34, height:34, borderRadius:11, background:t.light, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:17 }}>
                     {TURMA_EMOJI[tid]}
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
@@ -97,12 +118,13 @@ export default function DashboardPage() {
             />
             {alertas.length===0
               ? <Empty msg="🎉 Nenhum alerta no momento!" />
-              : <div style={{ maxHeight:280, overflowY:'auto' }}>
+              : <div style={{ maxHeight: isMobile ? 'none' : 280, overflowY: isMobile ? 'visible' : 'auto' }}>
                   {alertas.map(c => {
                     const t=TURMA_CONFIG[c.turma]; const f=freqMap[c.id]
                     return (
-                      <div key={c.id} onClick={()=>router.push(`/criancas/${c.id}`)}
-                        style={{ padding:'10px 16px', borderBottom:'1px solid rgba(240,98,146,0.08)', display:'flex', alignItems:'center', gap:10, cursor:'pointer', transition:'background 0.15s' }}
+                      <div key={c.id}
+                        onClick={()=>router.push(`/criancas/${c.id}`)}
+                        style={{ padding:'10px 14px', borderBottom:'1px solid rgba(240,98,146,0.08)', display:'flex', alignItems:'center', gap:10, cursor:'pointer', minHeight: isMobile ? 52 : 44 }}
                         onMouseOver={e=>(e.currentTarget.style.background='rgba(255,235,243,0.6)')}
                         onMouseOut={e=>(e.currentTarget.style.background='')}>
                         <Avatar nome={c.nome} fotoUrl={c.foto_url} color={t.color} light={t.light} size={36} radius={10} />
