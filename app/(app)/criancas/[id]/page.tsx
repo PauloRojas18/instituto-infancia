@@ -212,36 +212,83 @@ export default function CriancaPage() {
           )}
 
           {/* Histórico */}
-          <Card style={{ overflow:'hidden', marginBottom:16 }}>
-            <CardHeader title="📅 Histórico de presenças"
-              action={pct!==null ? (
-                <Badge bg={pct>=75?'var(--green-l)':'#FCEBEB'} color={pct>=75?'var(--green-d)':'#A32D2D'}>
-                  {presentes}/{total}
-                </Badge>
-              ) : undefined}
+          <Card style={{ overflow: 'hidden', marginBottom: 16 }}>
+            <CardHeader
+              title="📅 Histórico de presençasdasdasd"
+              action={
+                pct !== null ? (
+                  <Badge
+                    bg={pct >= 75 ? 'var(--green-l)' : '#FCEBEB'}
+                    color={pct >= 75 ? 'var(--green-d)' : '#A32D2D'}
+                  >
+                    {presentes}/{total}
+                  </Badge>
+                ) : undefined
+              }
             />
-            {historico.length===0
-              ? <div style={{ padding:'22px', textAlign:'center', color:'var(--sub)', fontSize:12, fontWeight:800 }}>Nenhum registro ainda 🌱</div>
-              : <div style={{ maxHeight:260, overflowY:'auto' }}>
-                  {historico.map((h, i) => {
-                    const ht   = h.turma ? TURMA_CONFIG[h.turma as Turma] : null
-                    const hEmoji = h.turma ? TURMA_EMOJI[h.turma] : ''
-                    return (
-                      <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px', borderBottom:'1px solid rgba(240,98,146,0.07)' }}>
-                        <div>
-                          <div style={{ fontSize:12, fontWeight:700 }}>{formatDate(h.data)}</div>
-                          <div style={{ fontSize:10, color:'var(--sub)', fontWeight:700, marginTop:2 }}>
-                            {h.tipo==='geral' ? '📋 Chamada geral' : (ht ? `${hEmoji} ${ht.label}` : '')}
-                          </div>
-                        </div>
-                        <span style={{ fontSize:11, fontWeight:800, padding:'4px 12px', borderRadius:20, background:h.presente?'var(--green-l)':'#FCEBEB', color:h.presente?'var(--green-d)':'#A32D2D' }}>
-                          {h.presente ? '✓ Presente' : '✗ Ausente'}
-                        </span>
-                      </div>
-                    )
-                  })}
+
+            {/* Barra de frequência */}
+            {total > 0 && pct !== null && (
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(240,98,146,0.07)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--sub)', marginBottom: 6 }}>
+                  <span>Frequência geral</span>
+                  <span style={{ color: pct >= 75 ? 'var(--green-d)' : '#A32D2D' }}>{pct}%</span>
                 </div>
-            }
+                <div style={{ height: 6, borderRadius: 4, background: 'rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    borderRadius: 4,
+                    width: `${pct}%`,
+                    background: pct >= 75 ? 'var(--green-d)' : '#E24B4A',
+                    transition: 'width 0.5s ease',
+                  }} />
+                </div>
+              </div>
+            )}
+
+            {historico.length === 0 ? (
+              <div style={{ padding: '28px', textAlign: 'center', color: 'var(--sub)', fontSize: 12, fontWeight: 800 }}>
+                Nenhum registro ainda 🌱
+              </div>
+            ) : (
+              <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                {historico.map((h, i) => {
+                  const ht     = h.turma ? TURMA_CONFIG[h.turma as Turma] : null
+                  const hEmoji = h.turma ? TURMA_EMOJI[h.turma] : ''
+                  const label  = h.tipo === 'geral'
+                    ? 'Chamada geral'
+                    : ht ? `${hEmoji} ${ht.label}` : '—'
+
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '11px 16px',
+                        borderBottom: '1px solid rgba(240,98,146,0.07)',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700 }}>{formatDate(h.data)}</div>
+                        <div style={{ fontSize: 10, color: 'var(--sub)', fontWeight: 700, marginTop: 2 }}>{label}</div>
+                      </div>
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        padding: '4px 13px',
+                        borderRadius: 20,
+                        background: h.presente ? 'var(--green-l)' : '#FCEBEB',
+                        color:      h.presente ? 'var(--green-d)' : '#A32D2D',
+                      }}>
+                        {h.presente ? '✓ Presente' : '✗ Ausente'}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </Card>
 
           {/* Ações */}
