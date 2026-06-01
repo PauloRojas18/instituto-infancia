@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Crianca, TURMA_CONFIG, TURMAS_ORDER, Turma } from '@/types'
 import { PageHeader, Card, Avatar, Btn, ProgressBar, Loading } from '@/components/ui'
-import { CheckIcon, ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
+import { CheckIcon, ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { formatDateLong, getToday } from '@/lib/utils'
 import { useIsMobile } from '@/lib/useIsMobile'
 
@@ -11,7 +11,6 @@ type View = 'lista' | 'chamada'
 interface ChamadaAPI { data: string; turma: string }
 const TURMA_EMOJI: Record<string, string> = { maternal:'🍼', jardim:'🌻', nivel2a:'⭐', nivel2b:'🚀' }
 
-// Cor de fundo levemente diferente por turma para separação visual
 const TURMA_BG: Record<string, string> = {
   maternal: '#FFF0F5',
   jardim:   '#F0FFF4',
@@ -23,14 +22,19 @@ export default function ChamadaTurmaPage() {
   const hoje     = getToday()
   const isMobile = useIsMobile()
 
-  const [criancas,   setCriancas]   = useState<Crianca[]>([])
-  const [loading,    setLoading]    = useState(true)
-  const [view,       setView]       = useState<View>('lista')
-  const [turmaAtiva, setTurmaAtiva] = useState<Turma | null>(null)
-  const [presencas,  setPresencas]  = useState<Record<number, boolean>>({})
-  const [salvando,   setSalvando]   = useState(false)
-  const [salvou,     setSalvou]     = useState(false)
-  const [feitasHoje, setFeitasHoje] = useState<Record<string, boolean>>({})
+  const [criancas,        setCriancas]        = useState<Crianca[]>([])
+  const [loading,         setLoading]         = useState(true)
+  const [view,            setView]            = useState<View>('lista')
+  const [turmaAtiva,      setTurmaAtiva]      = useState<Turma | null>(null)
+  const [presencas,       setPresencas]       = useState<Record<number, boolean>>({})
+  const [salvando,        setSalvando]        = useState(false)
+  const [salvou,          setSalvou]          = useState(false)
+  const [feitasHoje,      setFeitasHoje]      = useState<Record<string, boolean>>({})
+
+  // ── NOVO: estado da data selecionada ────────────────────
+  const [dataSelecionada, setDataSelecionada] = useState<string>(hoje)
+  const ehHoje       = dataSelecionada === hoje
+  const ehRetroativa = dataSelecionada < hoje
 
   useEffect(() => {
     let cancelled = false
@@ -46,6 +50,27 @@ export default function ChamadaTurmaPage() {
     })
     return () => { cancelled = true }
   }, [hoje])
+
+  // Recalcula "feitas" quando a data muda
+  // (idealmente você faria um fetch filtrado por data, mas aqui o estado local é suficiente
+  //  se a API de chamadas já retornar todas as datas)
+  const [todasChamadas, setTodasChamadas] = useState<ChamadaAPI[]>([])
+
+  useEffect(() => {
+    fetch('/api/chamadas')
+      .then(r => r.json())
+      .then((ch: ChamadaAPI[]) => {
+        if (!Array.isArray(ch)) return
+        setTodasChamadas(ch)
+      })
+  }, [])
+
+  // Recomputa quais turmas já têm chamada na data selecionada
+  useEffect(() => {
+    const feitas: Record<string, boolean> = {}
+    todasChamadas.forEach(x => { if (x.data === dataSelecionada) feitas[x.turma] = true })
+    setFeitasHoje(feitas)
+  }, [dataSelecionada, todasChamadas])
 
   const iniciar = (turma: Turma) => {
     const init: Record<number, boolean> = {}
@@ -67,10 +92,13 @@ export default function ChamadaTurmaPage() {
     const membros = criancas.filter(c => c.turma === turmaAtiva)
     await fetch('/api/chamadas', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ turma:turmaAtiva, data:hoje, presencas: membros.map(c=>({criancaId:c.id, presente:presencas[c.id]??false})) })
+      // usa dataSelecionada em vez de hoje
+      body: JSON.stringify({ turma:turmaAtiva, data:dataSelecionada, presencas: membros.map(c=>({criancaId:c.id, presente:presencas[c.id]??false})) })
     })
     setSalvando(false); setSalvou(true)
     setFeitasHoje(prev => ({ ...prev, [turmaAtiva]: true }))
+    // atualiza cache local de todas as chamadas
+    setTodasChamadas(prev => [...prev.filter(x => !(x.data === dataSelecionada && x.turma === turmaAtiva)), { data: dataSelecionada, turma: turmaAtiva }])
     setTimeout(() => { setView('lista'); setTurmaAtiva(null) }, 1500)
   }
 
@@ -88,17 +116,27 @@ export default function ChamadaTurmaPage() {
 
     return (
       <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
-        <PageHeader title={t.label} sub={formatDateLong(hoje)}
+        <PageHeader title={t.label} sub={formatDateLong(dataSelecionada)}
           actions={<Btn variant="ghost" size="sm" onClick={()=>setView('lista')}><ArrowLeftIcon style={{ width:14,height:14 }} /> Voltar</Btn>}
         />
         <div style={{ flex:1, overflowY:'auto', padding:pad } as React.CSSProperties} className="animate-up">
           <div style={{ maxWidth: isMobile ? '100%' : 560, margin:'0 auto' }}>
 
+            {/* Aviso retroativa na tela de chamada */}
+            {ehRetroativa && (
+              <div style={{ background:'rgba(255,152,0,0.12)', border:'1.5px solid rgba(255,152,0,0.35)', borderRadius:14, padding:'10px 14px', marginBottom:12, display:'flex', alignItems:'center', gap:8 }}>
+                <ExclamationTriangleIcon style={{ width:16, height:16, color:'#e65100', flexShrink:0 }} />
+                <span style={{ fontSize:12, fontWeight:800, color:'#e65100' }}>
+                  Chamada retroativa · {formatDateLong(dataSelecionada)}
+                </span>
+              </div>
+            )}
+
             {/* Header com % */}
             <div style={{ borderRadius:20, padding:'16px 18px', marginBottom:12, background:`linear-gradient(135deg,${t.color},${t.color}BB)`, color:'white', display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:`0 4px 16px ${t.color}44` }}>
               <div>
                 <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: isMobile ? 18 : 19 }}>{t.label}</div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.78)', fontWeight:700, marginTop:2 }}>{formatDateLong(hoje)}</div>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.78)', fontWeight:700, marginTop:2 }}>{formatDateLong(dataSelecionada)}</div>
               </div>
               <div style={{ textAlign:'right' }}>
                 <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: isMobile ? 30 : 32 }}>{pct}%</div>
@@ -171,19 +209,118 @@ export default function ChamadaTurmaPage() {
   // ── LISTA DE TURMAS ──────────────────────────────────────
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
-      <PageHeader title="Chamada por Turma" sub={formatDateLong(hoje)} />
+      <PageHeader title="Chamada por Turma" sub={formatDateLong(dataSelecionada)} />
       <div style={{ flex:1, overflowY:'auto', padding:pad } as React.CSSProperties} className="animate-up">
 
         {/* Hero */}
-        <div style={{ background:'linear-gradient(135deg,var(--pink) 0%,var(--purple) 100%)', borderRadius:20, padding: isMobile ? '14px 16px' : '18px 22px', marginBottom: isMobile ? 16 : 18, display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:'0 4px 18px rgba(240,98,146,0.28)' }}>
+        <div style={{ background:'linear-gradient(135deg,var(--pink) 0%,var(--purple) 100%)', borderRadius:20, padding: isMobile ? '14px 16px' : '18px 22px', marginBottom: isMobile ? 12 : 14, display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:'0 4px 18px rgba(240,98,146,0.28)' }}>
           <div>
-            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: isMobile ? 16 : 19, color:'white' }}>{formatDateLong(hoje)}</div>
+            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: isMobile ? 16 : 19, color:'white' }}>
+              {formatDateLong(dataSelecionada)}
+              {ehHoje && <span style={{ fontSize:11, background:'rgba(255,255,255,0.25)', borderRadius:20, padding:'3px 8px', marginLeft:8, fontFamily:"'Nunito',sans-serif", fontWeight:900 }}>hoje</span>}
+            </div>
             <div style={{ fontSize:11, color:'rgba(255,255,255,0.75)', marginTop:2, fontWeight:700 }}>Selecione uma turma para registrar a chamada</div>
           </div>
           <div style={{ width:44,height:44,borderRadius:14,background:'rgba(255,255,255,0.22)',display:'flex',alignItems:'center',justifyContent:'center',color:'white',flexShrink:0 }}>
             <CalendarDaysIcon style={{ width:22,height:22 }} />
           </div>
         </div>
+
+        {/* ── SELETOR DE DATA ────────────────────────────────── */}
+        <div style={{
+          background: 'rgba(255,255,255,0.92)',
+          border: ehRetroativa
+            ? '1.5px solid rgba(255,152,0,0.45)'
+            : '1.5px solid rgba(240,98,146,0.2)',
+          borderRadius: 14,
+          padding: '10px 14px',
+          marginBottom: isMobile ? 14 : 16,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}>
+          <CalendarDaysIcon style={{ width:18, height:18, color: ehRetroativa ? '#e65100' : '#f06292', flexShrink:0 }} />
+
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:11, fontWeight:900, color:'var(--sub)', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:2 }}>
+              Data da chamada
+            </div>
+            <input
+              type="date"
+              max={hoje}
+              value={dataSelecionada}
+              onChange={e => setDataSelecionada(e.target.value)}
+              style={{
+                border: 'none',
+                outline: 'none',
+                fontFamily: "'Nunito', sans-serif",
+                fontSize: 14,
+                fontWeight: 800,
+                color: ehRetroativa ? '#e65100' : 'var(--text)',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            />
+          </div>
+
+          {/* Pílula de status */}
+          <span style={{
+            background: ehHoje
+              ? 'rgba(240,98,146,0.12)'
+              : 'rgba(255,152,0,0.12)',
+            color: ehHoje ? '#c2185b' : '#e65100',
+            fontSize: 11,
+            fontWeight: 900,
+            padding: '4px 10px',
+            borderRadius: 20,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}>
+            {ehHoje ? 'hoje' : 'retroativa'}
+          </span>
+
+          {/* Botão voltar para hoje — só aparece quando não é hoje */}
+          {!ehHoje && (
+            <button
+              type="button"
+              onClick={() => setDataSelecionada(hoje)}
+              style={{
+                background: 'var(--pink)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 10,
+                padding: '5px 12px',
+                fontSize: 11,
+                fontWeight: 900,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              Hoje
+            </button>
+          )}
+        </div>
+
+        {/* Aviso retroativa */}
+        {ehRetroativa && (
+          <div style={{
+            background: 'rgba(255,152,0,0.1)',
+            border: '1.5px solid rgba(255,152,0,0.3)',
+            borderRadius: 12,
+            padding: '9px 14px',
+            marginBottom: isMobile ? 14 : 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}>
+            <ExclamationTriangleIcon style={{ width:15, height:15, color:'#e65100', flexShrink:0 }} />
+            <span style={{ fontSize:12, fontWeight:800, color:'#e65100' }}>
+              Você está registrando uma chamada retroativa para {formatDateLong(dataSelecionada)}
+            </span>
+          </div>
+        )}
 
         {/* Cards de turma */}
         <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: isMobile ? 14 : 14 }}>
@@ -195,22 +332,17 @@ export default function ChamadaTurmaPage() {
             return (
               <Card key={tid} style={{
                 overflow:'hidden',
-                /* Borda colorida bem visível na cor da turma */
                 border:`2px solid ${t.color}`,
-                /* Sombra colorida para separar bem os cards */
                 boxShadow: isMobile ? `0 4px 16px ${t.color}30` : `0 4px 18px ${t.color}20`,
-                /* Fundo levemente tintado da cor da turma */
                 background: isMobile ? TURMA_BG[tid] : 'rgba(255,255,255,0.88)',
               }}>
 
-                {/* Cabeçalho colorido — mais alto no mobile para ser fácil de identificar */}
                 <div style={{
                   padding: isMobile ? '14px 16px' : '14px 16px',
                   background: t.color,
                   display:'flex', alignItems:'center', justifyContent:'space-between', gap:8,
                 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    {/* Emoji grande para identificação rápida */}
                     <span style={{ fontSize: isMobile ? 28 : 22, lineHeight:1 }}>{TURMA_EMOJI[tid]}</span>
                     <div>
                       <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: isMobile ? 18 : 16, color:'white', lineHeight:1.2 }}>
@@ -223,14 +355,12 @@ export default function ChamadaTurmaPage() {
                   </div>
                   {feita && (
                     <span style={{ background:'rgba(255,255,255,0.28)', color:'white', fontSize:10, fontWeight:900, padding:'5px 12px', borderRadius:20, display:'flex', alignItems:'center', gap:4, flexShrink:0, whiteSpace:'nowrap' }}>
-                      <CheckIcon style={{ width:11,height:11,strokeWidth:3 }} /> feita hoje
+                      <CheckIcon style={{ width:11,height:11,strokeWidth:3 }} /> {ehHoje ? 'feita hoje' : 'já registrada'}
                     </span>
                   )}
                 </div>
 
-                {/* Corpo do card */}
                 <div style={{ padding:'12px 14px' }}>
-                  {/* Pílulas com primeiros nomes */}
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12, minHeight:28 }}>
                     {membros.slice(0,isMobile?5:6).map(m => (
                       <span key={m.id} style={{ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:20, fontSize:11, fontWeight:800, background:t.light, color:t.text }}>
@@ -247,7 +377,6 @@ export default function ChamadaTurmaPage() {
                     )}
                   </div>
 
-                  {/* Botão de chamada — bem destacado */}
                   <button type="button" onClick={()=>iniciar(tid)} style={{
                     width:'100%',
                     padding: isMobile ? '14px' : '10px',
